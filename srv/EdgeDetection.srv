@@ -1,0 +1,6 @@
+string img_path
+---
+bool info
+uint32 height
+uint32 width
+float32[] data  # Flattened ndarray (row-major order)
