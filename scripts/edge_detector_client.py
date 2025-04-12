@@ -3,6 +3,7 @@
 import rospy
 import os
 import cv2
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 from edge_detection.srv import EdgeDetection, EdgeDetectionResponse
@@ -33,5 +34,13 @@ def edge_detection_client(img_dir):
 
 if __name__ == "__main__":
     rospy.init_node('edge_detection_client')
-    img_dir = '/neura/data/edge_detection_data/data/'
+
+    parser = argparse.ArgumentParser(description='Command Line Arguments')
+    parser.add_argument('img_dir', type=str, nargs='?',
+        default='/neura/ws/src/edge_detection/data',  # Default value
+        help='Path to the Image directory')
+	# Parse arguments
+    args = parser.parse_args()
+    img_dir = args.img_dir
+
     edge_detection_client(img_dir=img_dir)
