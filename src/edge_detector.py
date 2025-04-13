@@ -239,13 +239,13 @@ class edgeDetectionNode:
         
         self.edge_marker_array_pub.publish(marker_array)
 
-    def main(self, rgb_img, depth_msg) -> None:
+    def main(self, rgb_msg, depth_msg) -> None:
         '''
             Main Function
         '''
         
         rospy.loginfo("Received synchronized messages.")
-        rgb_image = self.bridge.imgmsg_to_cv2(rgb_img, "rgb8")
+        rgb_image = self.bridge.imgmsg_to_cv2(rgb_msg, "rgb8")
         depth_image = self.bridge.imgmsg_to_cv2(depth_msg, "passthrough")
         try:
             edges, corners = self.detect_keypoints(rgb_image, isServiceCall=False)
@@ -256,6 +256,7 @@ class edgeDetectionNode:
             edge_img[edges != 0] = [0, 255, 0]  # Green color for edges
             edge_img = cv2.addWeighted(rgb_image, 0.5, edge_img, 1.5, 0)
             edge_img_msg = self.bridge.cv2_to_imgmsg(edge_img, encoding="bgr8")
+            edge_img_msg.header = rgb_msg.header
 
             self.edge_image_pub.publish(edge_img_msg)
             self.publish_pointcloud_from_points()
