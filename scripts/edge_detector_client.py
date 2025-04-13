@@ -18,6 +18,8 @@ def edge_detection_client(img_dir):
     for img_file in image_files:
         try:
             aruco_pose_detection = rospy.ServiceProxy('edge_detection_server', EdgeDetection)
+            
+            # Trigger ROS Service
             response = aruco_pose_detection(img_path=img_file)
             if response.info == False:
                 rospy.logerr(f"Edge Detection Failed!")
@@ -37,8 +39,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Command Line Arguments')
     parser.add_argument('img_dir', type=str, nargs='?',
-        default='/neura/ws/src/edge_detection/data',  # Default value
-        help='Path to the Image directory')
+        default='/neura/ws/src/edge_detection/data',
+        help='Path to the Images directory')
 	# Parse arguments
     args = parser.parse_args()
     img_dir = args.img_dir
