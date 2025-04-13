@@ -3,14 +3,18 @@ This ROS package detects edges in a checkerboard image, projects those edges int
 
 ## Features
 - Implemented in ROS1 Noetic
-- Edge detection after artifacts removal
+- Artifacts removal using Bilateral Smoothing
+- Edge Detection using Canny
+- Outlier Removal using Largest Contour 
+    - Largest contour by area is identified and any detected edge outside the largest contour is removed to retain only edges of the checkerboard.
 - Projection of detected edges into 3D space using camera intrinsics
 - Visualization of 3D edges as RViz markers for each TF frame
+    - A timer callback is triggered every 0.1 seconds to publish the markers for each frame. For more real-time updates, change this value to 0.05 or lower.
 
 ## Getting started
 
 ### Basic
-- `edge_detection.py` contains the source code.
+- `src/edge_detection.py` contains the source code.
 - Required packages include opencv and numpy.
 
 ### Vision_ROS
@@ -41,8 +45,13 @@ This ROS package detects edges in a checkerboard image, projects those edges int
 - Play the bagfile by `rosbag play --clock -l <path to bagfile>`.
 - Edges are visualized as markers in the `/edge_points_marker` topic. In RViz, set the fixed frame to any TF frame of your choice to view the markers in the desired frame.
 
-### Notes
+## Notes
 - The result videos are found in `results` directory.
     - The video `results/result_camera_frame.mp4` visualizes the output of ROBOT_ROS package in `camera_color_optical_frame` only.
-    - The video `results/result_all_frames.mp4` visualizes the output of ROBOT_ROS package in a few arbitrary frames.
+    - The video `results/result_all_frames_fast_bag_playback.mp4` visualizes the output of ROBOT_ROS package in a few arbitrary frames. This video was recorded while setting the `marker_timer_callback_freq` parameter to `0.05`.
+    - The video `results/result_all_frames_slow_bag_playback.mp4` visualizes the output of ROBOT_ROS package in a few arbitrary frames. This video was recorded while setting the `marker_timer_callback_freq` parameter to `0.1` and playing the bag file at a slower rate of `0.5`.
 - The results of sample images are found inside `data/results` directory.
+
+## Areas of Improvement
+- A slight lag is observed when publishing marker points in each frame, indicating a need for further optimization.
+- Reimplement the ROS node in C++ to evaluate whether the lag persists and to potentially improve performance.
