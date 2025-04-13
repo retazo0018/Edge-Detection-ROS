@@ -53,5 +53,5 @@ This ROS package detects edges in a checkerboard image, projects those edges int
 - The results of sample images are found inside `data/results` directory.
 
 ## Areas of Improvement
-- A slight lag is observed when publishing marker points in each frame, indicating a need for further optimization.
+- A slight lag is observed when publishing marker points in each frame, indicating a need for small further optimization.
 - Reimplement the ROS node in C++ to evaluate whether the lag persists and to potentially improve performance.
