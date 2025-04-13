@@ -1,15 +1,25 @@
 # Edge Detection ROS
 This ROS package detects edges in a checkerboard image, projects those edges into 3D space, and visualizes them as markers for each TF frame.
 
-## Features
+## Description
 - Implemented in ROS1 Noetic
-- Artifacts removal using Bilateral Smoothing
-- Edge Detection using Canny
+- Noise removal using Bilateral Smoothing
+- Edge Detection using Canny Edge Detection
+    - The gradient magnitude and orientation are calculated to identify areas of high intensity change, indicating potential edges.
 - Outlier Removal using Largest Contour 
     - Largest contour by area is identified and any detected edge outside the largest contour is removed to retain only edges of the checkerboard.
-- Projection of detected edges into 3D space using camera intrinsics
+- Projection of detected edges into 3D space using formula below,
+    - X = ((u - cx) * Z) / fx
+    - Y = ((v - cy) * Z) / fy
+    - Z = d
+    - where,
+        - u, v are the pixel coordinates in the image
+        - d is the depth value at that pixel
+        - cx, cy is the principal point of the camera (intrinsic parameters)
+        - fx, fy are the focal lengths in x and y directions
+        - (X, Y, Z) is the 3D point in the camera coordinate system
 - Visualization of 3D edges as RViz markers for each TF frame
-    - A timer callback is triggered every 0.1 seconds to publish the markers for each frame. For more real-time updates, change this value to 0.05 or lower.
+    - A timer callback is triggered every 0.05 seconds to publish the markers for each frame. For more real-time updates, change the value of `marker_timer_callback_freq` parameter in `src/edge_detector.py` to 0.01 or lower. Increase the value to 0.1 for 
 
 ## Getting started
 
@@ -19,17 +29,17 @@ This ROS package detects edges in a checkerboard image, projects those edges int
 
 ### Vision_ROS
 - Start `roscore` on a terminal.
-- Intialise a ROS workspace and run `catkin_make` from root.
+- Intialise a ROS workspace, copy this repository contents inside `src` directory and run `catkin_make` from root of the workspace.
 - Install any missing ROS packages when prompted by `sudo apt update && sudo apt install ros-noetic-<package-name>`
-- Source the workspace `source <path to catkin workspace>/devel/setup.bash`.
+- On another terminal, source the workspace `source <path to catkin workspace>/devel/setup.bash`.
 - Start the server/node using `rosrun edge_detection edge_detector.py`.
 
 - ROS Service
-    - Start the client using `rosrun edge_detection edge_detector_client.py "/<PATH_TO_IMAGES_DIRECTORY>/"`.
+    - On a new terminal, start the client using `rosrun edge_detection edge_detector_client.py "/<PATH_TO_IMAGES_DIRECTORY>/"`.
     - A superimposed image with the detected edges highlighted in green is saved for each input image, inside a `results` subdirectory located within the same input directory.
 
 - Bagfile Input
-    - Play the bagfile by `rosbag play --clock -l <path to bagfile>`.
+    - On a different terminal, play the bagfile by `rosbag play --clock -l <path to bagfile>`.
     - The default values of the camera topics are listed below. Please modify otherwise.
         - `camera_depth_aligned_pc_topic`: `/camera/depth/points`
         - `camera_depth_image_topic`: `/camera/depth/image_rect_raw`
@@ -39,10 +49,10 @@ This ROS package detects edges in a checkerboard image, projects those edges int
 
 ### Robot_ROS
 - Start `roscore` on a terminal.
-- Source the workspace `source <path to catkin workspace>/devel/setup.bash`.
+- On another terminal, source the workspace `source <path to catkin workspace>/devel/setup.bash`.
 - Start the node using `rosrun edge_detection edge_detector.py`.
-- Launch the robot using `rosparam set /use_sim_time true && roslaunch mira_picker display.launch gripper_name:=robotiq2f_140 publish_joint_state:=false publish_robot_state:=false`
-- Play the bagfile by `rosbag play --clock -l <path to bagfile>`.
+- On a new terminal, launch the robot using `rosparam set /use_sim_time true && roslaunch mira_picker display.launch gripper_name:=robotiq2f_140 publish_joint_state:=false publish_robot_state:=false`
+- On a different terminal, play the bagfile by `rosbag play --clock -l <path to bagfile>`.
 - Edges are visualized as markers in the `/edge_points_marker` topic. In RViz, set the fixed frame to any TF frame of your choice to view the markers in the desired frame.
 
 ## Notes
