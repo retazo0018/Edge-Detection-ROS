@@ -19,7 +19,8 @@ This ROS package detects edges in a checkerboard image, projects those edges int
         - fx, fy are the focal lengths in x and y directions
         - (X, Y, Z) is the 3D point in the camera coordinate system
 - Visualization of 3D edges as RViz markers for each TF frame
-    - A timer callback is triggered every 0.05 seconds to publish the markers for each frame. For more real-time updates, change the value of `marker_timer_callback_freq` parameter in `src/edge_detector.py` to 0.01 or lower. Increase the value to 0.1 for 
+    - A timer callback is triggered every 0.05 seconds to publish the markers for each frame. For more real-time updates, change the value of `marker_timer_callback_freq` parameter in `src/edge_detector.py` to 0.01 or lower. Increase this value to 0.1 for slightly more stable marker updates at the cost of a slight lag.
+    - The 3D edge points are downsampled by the value of `edge_downsampling_rate` parameter in `src/edge_detector.py` to achieve real-time marker updates. The value is by default set to 5. A higher value will lead to limited 3D edge markers.
 
 ## Getting started
 

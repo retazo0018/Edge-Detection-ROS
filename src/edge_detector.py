@@ -248,8 +248,8 @@ class edgeDetectionNode:
         rgb_image = self.bridge.imgmsg_to_cv2(rgb_msg, "rgb8")
         depth_image = self.bridge.imgmsg_to_cv2(depth_msg, "passthrough")
         try:
-            edges, corners = self.detect_keypoints(rgb_image, isServiceCall=False)
-            edge_pixels = self.get_edge_pixels(edges, corners)
+            edges, contours = self.detect_keypoints(rgb_image, isServiceCall=False)
+            edge_pixels = self.get_edge_pixels(edges, contours)
             self.edge_pixels_to_3d(edge_pixels, depth_image)
 
             edge_img = np.zeros_like(rgb_image)
