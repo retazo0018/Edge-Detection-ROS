@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   OpenCV REQUIRED
   message_filters
+  cv_bridge
 )
 
 ## System dependencies are found with CMake's conventions

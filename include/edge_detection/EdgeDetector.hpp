@@ -18,6 +18,7 @@ public:
 	void cameraInfoCallback(const sensor_msgs::CameraInfoConstPtr& msg);
 	void mainCallback(const sensor_msgs::ImageConstPtr& rgb_img,
                       const sensor_msgs::ImageConstPtr& depth_img);
+	cv::Mat detectEdges(const cv::Mat& rgb_image, bool is_service_call = true) const;
 
 private:
     ros::NodeHandle nh_;
@@ -35,6 +36,7 @@ private:
 	typedef message_filters::Synchronizer<MySyncPolicy> Sync;
 	boost::shared_ptr<Sync> sync_;
 
+	ros::Publisher edge_image_pub_;
 };
 
 }  // namespace edge_detection

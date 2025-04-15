@@ -25,7 +25,7 @@ This ROS package detects edges in a checkerboard image, projects those edges int
 ## Getting started
 
 ### Basic
-- `src/edge_detection.py` contains the source code.
+- `src/EdgeDetector.cpp` and `include/EdgeDetector.hpp` contains the source code.
 - Required packages include opencv and numpy.
 
 ### Vision_ROS
@@ -33,7 +33,7 @@ This ROS package detects edges in a checkerboard image, projects those edges int
 - Intialise a ROS workspace, copy this repository contents inside `src` directory and run `catkin_make` from root of the workspace.
 - Install any missing ROS packages when prompted by `sudo apt update && sudo apt install ros-noetic-<package-name>`
 - On another terminal, source the workspace `source <path to catkin workspace>/devel/setup.bash`.
-- Start the server/node using `rosrun edge_detection edge_detector.py`.
+- Start the server/node using `rosrun edge_detection edge_detector.py` in Python and `rosrun edge_detection edge_detection_bin` in Cpp.
 
 - ROS Service
     - On a new terminal, start the client using `rosrun edge_detection edge_detector_client.py "/<PATH_TO_IMAGES_DIRECTORY>/"`.
