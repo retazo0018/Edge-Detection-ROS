@@ -14,6 +14,7 @@ namespace edge_detection {
 		: nh_(nh){
 		ROS_INFO("EdgeDetector constructor called.");
 
+		// Time Sync for RGB and Depth Images
 		rgb_sub.subscribe(nh_, "/camera/color/image_raw", 1);
     	depth_sub.subscribe(nh_, "/camera/depth/image_rect_raw", 1);
 		sync_.reset(new Sync(MySyncPolicy(10), rgb_sub, depth_sub));
@@ -31,6 +32,8 @@ namespace edge_detection {
 	}
 
 	void EdgeDetector::cameraInfoCallback(const sensor_msgs::CameraInfoConstPtr& msg) {
+		// Saves camera parameters (Intrinsics) by subscribing to camera_info message
+
     	camera_info_ = *msg;
 		// Convert K to 3x3 matrix
 		camera_matrix_ = cv::Mat(3, 3, CV_64F);
@@ -53,6 +56,8 @@ namespace edge_detection {
 
 	bool EdgeDetector::detectEdgesSrv(edge_detection::EdgeDetection::Request &req,
                                       edge_detection::EdgeDetection::Response &res) {
+		// ROS service call for Edge detection of image from its file location
+
 		try {
 			cv::Mat img = cv::imread(req.img_path, cv::IMREAD_COLOR);
 			if (img.empty()) {
@@ -61,7 +66,7 @@ namespace edge_detection {
 				return true;
 			}
 
-			cv::Mat edges = detectEdges(img);  // Your own function, returns cv::Mat
+			cv::Mat edges = detectEdges(img); 
 
 			res.height = edges.rows;
 			res.width = edges.cols;
@@ -87,6 +92,8 @@ namespace edge_detection {
 	}
 
 	cv::Mat EdgeDetector::detectEdges(const cv::Mat& rgb_image, bool is_service_call) const {
+		//	Detects edges of an Image using Canny Edge detection
+		
 		cv::Mat img_gray, img_blur, edges;
 
 		cv::cvtColor(rgb_image, img_gray, cv::COLOR_BGR2GRAY);
@@ -97,7 +104,7 @@ namespace edge_detection {
 			return edges;
 		}
 
-		// ToDo: include contour logic
+		// ToDo: include contour logic?
 		return edges;
 	}
 
@@ -116,6 +123,8 @@ namespace edge_detection {
 
 	cv::Mat EdgeDetector::edgePixelsTo3D(const std::vector<cv::Point>& edge_pixels,
                                      const cv::Mat& depth_image) const {
+		// Converts 2D pixels to 3D points using the Camera Intrinsics
+
 		std::vector<cv::Vec3f> points_3d;
 
 		for (const auto& pt : edge_pixels) {
@@ -134,6 +143,8 @@ namespace edge_detection {
 	}
 
 	void EdgeDetector::publishPointCloudFromPoints(const cv::Mat& points_3d) {
+		// Publishes 3D Edges as a Pointcloud
+
 		sensor_msgs::PointCloud2 pc_msg;
 		pc_msg.header.stamp = ros::Time::now();
 		pc_msg.header.frame_id = source_frame_id_;
@@ -160,6 +171,8 @@ namespace edge_detection {
 	}
 
 	void EdgeDetector::publishEdgeMarkers(const cv::Mat& points_3d) {
+		// Publishes 3D Edges as Markers
+
 		visualization_msgs::Marker marker;
 		marker.header.frame_id = source_frame_id_;
 		marker.header.stamp = ros::Time::now();
@@ -189,6 +202,8 @@ namespace edge_detection {
 	}
 
 	void EdgeDetector::mainCallback(const sensor_msgs::ImageConstPtr& rgb_img, const sensor_msgs::ImageConstPtr& depth_img) {
+		// Main callback function
+
 		ROS_INFO("Received synchronized messages.");
 
 		cv_bridge::CvImagePtr cv_rgb_ptr = cv_bridge::toCvCopy(rgb_img, sensor_msgs::image_encodings::BGR8);
