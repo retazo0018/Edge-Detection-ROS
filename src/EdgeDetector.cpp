@@ -1,16 +1,28 @@
 #include <edge_detection/EdgeDetector.hpp>
+#include <ros/ros.h>
 
 using namespace edge_detection;
 
-// Your class methods definition goes here
+namespace edge_detection {
 
+EdgeDetector::EdgeDetector(ros::NodeHandle& nh) : nh_(nh) {
+    // Constructor
+    ROS_INFO("EdgeDetector constructor called.");
+}
 
+void EdgeDetector::init() {
+    // Initialization logic goes here
+    ROS_INFO("EdgeDetector initialized.");
+}
+}
 
+int main(int argc, char** argv) {
+    ros::init(argc, argv, "edge_detection_node");
+    ros::NodeHandle nh;
 
-int main()
-{
-	edge_detection::EdgeDetector detector;
-    // Create the executable for testing the code here
+    edge_detection::EdgeDetector detector(nh);
+    detector.init();
 
-	return 0;
+    ros::spin();
+    return 0;
 }
