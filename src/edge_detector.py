@@ -27,10 +27,6 @@ class edgeDetectionNode:
         # Source frame of detection
         self.source_frame = "camera_color_optical_frame"
         self.points_3d = np.array([])
-        self.frames = []
-        # Downsamples detected edges for optimization
-        self.edge_downsampling_rate = 5
-        self.marker_timer_callback_freq = 0.05
         
         try:
             # Rosparams for camera topics
@@ -49,39 +45,22 @@ class edgeDetectionNode:
         # Publishers
         self.edge_image_pub = rospy.Publisher('/edge_image', Image, queue_size=1)
         self.edge_pc_pub = rospy.Publisher('/edge_points', PointCloud2, queue_size=1)
-        self.edge_marker_array_pub = rospy.Publisher('/edge_points_marker', MarkerArray, queue_size=1)
+        self.edge_marker_pub = rospy.Publisher('/edge_points_marker', Marker, queue_size=1)
         
         # Service
         self.edge_detector_srv = rospy.Service('edge_detection_server', EdgeDetection, self.detect_edges_srv)
-        
-        # TF
-        self.tf_buffer = tf2_ros.Buffer()
-        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
-
-        # Timer to publish 3D edge markers for each TF frame every 0.1s 
-        self.marker_timer = rospy.Timer(rospy.Duration(self.marker_timer_callback_freq), self.marker_timer_callback)
 
         # Time Synchronizer for RGB and Depth Images
         self.ts = message_filters.ApproximateTimeSynchronizer([rgb_img_sub, depth_img_sub], queue_size=2, slop=0.01, allow_headerless=False)
         self.ts.registerCallback(self.main)
 
         rospy.spin()   
-    
-    def get_all_frames(self) -> list:
-        '''
-            Returns list of all available frames in the TF tree
-        '''
-
-        yaml_str = self.tf_buffer.all_frames_as_yaml()
-        data = yaml.safe_load(yaml_str)
-        return list(data.keys())
-    
+       
     def camera_info_callback(self, camera_info)-> None:
         '''
             Camera Parameters (Intrinsics)    
         '''
     
-        self.frames = self.get_all_frames()
         self.camera_info = camera_info
         self.camera_matrix = np.array(camera_info.K).reshape(3,3) 
         self.dist_coeffs = np.array(camera_info.D)
@@ -137,6 +116,7 @@ class edgeDetectionNode:
         if contours is None:
             return np.asarray(edge_pixels)
 
+        '''
         # Remove edges outside the checkerboard boundary
         largest_contour = max(contours, key=cv2.contourArea)
         hull = cv2.convexHull(largest_contour)
@@ -145,8 +125,9 @@ class edgeDetectionNode:
         for (x, y) in edge_pixels:
             if cv2.pointPolygonTest(hull, (x, y), False) >= 0:
                 filtered_edge_pixels.append((int(x), int(y)))
+        '''
 
-        return np.asarray(filtered_edge_pixels)
+        return np.asarray(edge_pixels)
     
     def edge_pixels_to_3d(self, edge_pixels, depth_image) -> np.ndarray:
         '''
@@ -177,67 +158,27 @@ class edgeDetectionNode:
         pc_msg = pc2.create_cloud(header, self.fields, self.points_3d)
         self.edge_pc_pub.publish(pc_msg)
     
-    def marker_timer_callback(self, _) -> None:
-        '''
-            Publishes 3D edge points as markers for each TF frame
-        '''
-        
-        marker_sets = []
-        if len(self.points_3d) != 0:
-            self.points_3d = self.points_3d[::self.edge_downsampling_rate]
-            for frame in self.frames:
-                if frame == self.source_frame:
-                    continue
-                transformation = self.tf_buffer.lookup_transform(frame, self.source_frame, rospy.Time(0), rospy.Duration(0.05))
-                tf_matrix = self.transform_to_matrix(transformation)
-                # Add homogeneous 1s for batch transform: (N, 4)
-                ones = np.ones((self.points_3d.shape[0], 1))
-                pts_hom = np.hstack([self.points_3d, ones])
-                # Optimization: Transform all points at once: (N, 4) x (4, 4)^T
-                transformed_pts = (tf_matrix @ pts_hom.T).T[:, :3]
-                marker_sets.append((transformed_pts, frame))
-        self.publish_edge_markers(marker_sets)
-    
-    def transform_to_matrix(self, transform) -> np.ndarray:
-        '''
-            Returns 4*4 transformation matrix from TF transform
-        '''
-        
-        trans = transform.transform.translation
-        rot = transform.transform.rotation
-        translation = [trans.x, trans.y, trans.z]
-        rotation = [rot.x, rot.y, rot.z, rot.w]
-        tf_mat = tft.quaternion_matrix(rotation)
-        tf_mat[:3, 3] = translation
-        return tf_mat
-
-    def publish_edge_markers(self, marker_sets) -> None:
+    def publish_edge_markers(self) -> None:
         '''
             Publishes 3D edge points as MarkerArray for Optimization
         '''
-
-        marker_array = MarkerArray()
-        marker_id = 0
-        for points_3d, frame_id in marker_sets:
-            marker = Marker()
-            marker.header.frame_id = frame_id
-            marker.header.stamp = rospy.Time.now()
-            marker.ns = "edge_points"
-            marker.id = marker_id
-            marker.type = Marker.POINTS
-            marker.action = Marker.ADD
-            marker.scale.x = 0.02
-            marker.scale.y = 0.02
-            marker.color.r = 0.0
-            marker.color.g = 1.0
-            marker.color.b = 0.0
-            marker.color.a = 1.0
-            for pt in points_3d:
-                marker.points.append(Point(x=pt[0], y=pt[1], z=pt[2]))
-            marker_array.markers.append(marker)
-            marker_id += 1
+        marker = Marker()
+        marker.header.frame_id = self.source_frame
+        marker.header.stamp = rospy.Time.now()
+        marker.ns = "edge_points"
+        marker.id = 0
+        marker.type = Marker.POINTS
+        marker.action = Marker.ADD
+        marker.scale.x = 0.02
+        marker.scale.y = 0.02
+        marker.color.r = 0.0
+        marker.color.g = 1.0
+        marker.color.b = 0.0
+        marker.color.a = 1.0
+        for pt in self.points_3d:
+            marker.points.append(Point(x=pt[0], y=pt[1], z=pt[2]))
         
-        self.edge_marker_array_pub.publish(marker_array)
+        self.edge_marker_pub.publish(marker)
 
     def main(self, rgb_msg, depth_msg) -> None:
         '''
@@ -260,6 +201,7 @@ class edgeDetectionNode:
 
             self.edge_image_pub.publish(edge_img_msg)
             self.publish_pointcloud_from_points()
+            self.publish_edge_markers()
             rospy.loginfo("Published edge image, edge points and edge markers.")
             
         except Exception as e:

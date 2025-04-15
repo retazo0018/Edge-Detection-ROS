@@ -19,9 +19,15 @@ public:
 	void mainCallback(const sensor_msgs::ImageConstPtr& rgb_img,
                       const sensor_msgs::ImageConstPtr& depth_img);
 	cv::Mat detectEdges(const cv::Mat& rgb_image, bool is_service_call = true) const;
+	cv::Mat edgePixelsTo3D(const std::vector<cv::Point>& edge_pixels, const cv::Mat& depth_image) const;
+	std::vector<cv::Point> getEdgePixels(const cv::Mat& edges) const;
+	void publishPointCloudFromPoints(const cv::Mat& points_3d);
+	void publishEdgeMarkers(const cv::Mat& points_3d);
 
 private:
     ros::NodeHandle nh_;
+
+	std::string source_frame_id_;
 
 	ros::Subscriber camera_info_sub_;
 	sensor_msgs::CameraInfo camera_info_;
@@ -37,6 +43,8 @@ private:
 	boost::shared_ptr<Sync> sync_;
 
 	ros::Publisher edge_image_pub_;
+	ros::Publisher edge_pc_pub_;
+	ros::Publisher edge_marker_pub_;
 };
 
 }  // namespace edge_detection
