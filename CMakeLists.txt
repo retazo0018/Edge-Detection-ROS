@@ -7,11 +7,17 @@ project(edge_detection)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
+set(OpenCV_DIR "/usr/lib/x86_64-linux-gnu/cmake/opencv4")
 find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  rospy
   geometry_msgs
   visualization_msgs
   std_msgs
   message_generation
+  OpenCV REQUIRED
+  message_filters
+  cv_bridge
 )
 
 ## System dependencies are found with CMake's conventions
@@ -122,6 +128,7 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 file(GLOB_RECURSE CPP_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
@@ -135,9 +142,9 @@ add_library(TARGET_NAME SHARED ${SOURCES})
 target_include_directories(TARGET_NAME PUBLIC ${INCLUDE_DIRECTORIES} )
 target_link_libraries(TARGET_NAME ) # fill this up with the dependencies you want for eg opencv
 
-add_executable(edge_detection_bin src/EdgeDetector.cpp )
+add_executable(edge_detection_bin src/EdgeDetector.cpp)
 target_include_directories(edge_detection_bin PUBLIC ${INCLUDE_DIRECTORIES} )
-target_link_libraries(edge_detection_bin TARGET_NAME)
+target_link_libraries(edge_detection_bin ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
