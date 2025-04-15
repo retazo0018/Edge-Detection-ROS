@@ -1,5 +1,6 @@
 # Edge Detection ROS
 This ROS package detects edges in a checkerboard image, projects those edges into 3D space, and visualizes them as markers for each TF frame.
+⚠️ **Note:** The branch `feat/cpp` contains the C++ Implementation and is currently a WIP. 
 
 ## Description
 - Implemented in ROS1 Noetic
