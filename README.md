@@ -7,6 +7,7 @@ This ROS package detects edges in a checkerboard image, projects those edges int
 - Noise removal using Bilateral Smoothing
 - Edge Detection using Canny Edge Detection
     - The gradient magnitude and orientation are calculated to identify areas of high intensity change, indicating potential edges.
+- ROS service to detect edges for images located in a directory
 - Projection of detected edges into 3D space using formula below,
     - X = ((u - cx) * Z) / fx
     - Y = ((v - cy) * Z) / fy
@@ -18,7 +19,6 @@ This ROS package detects edges in a checkerboard image, projects those edges int
         - fx, fy are the focal lengths in x and y directions
         - (X, Y, Z) is the 3D point in the camera coordinate system
 - Visualization of 3D edges as RViz markers for each TF frame in RviZ
-- The ROS service for Vision ROS task is only implemented in Python as of now.
 
 ## Getting started
 
@@ -29,10 +29,13 @@ This ROS package detects edges in a checkerboard image, projects those edges int
 
 ### Vision_ROS
 - Start `roscore` on a terminal.
-- On another terminal, intialise a ROS workspace, copy this repository contents inside `src` directory and run `catkin_make` from root of the workspace.
+- On another terminal, intialise a ROS workspace, copy this repository contents inside `src` directory
+- Workspace Setup Step
+    - On another terminal, run `catkin_make` from the root of the catkin workspace.
+    - Source the workspace `source <path to catkin workspace>/devel/setup.bash`.
 - Install any missing ROS packages when prompted by `sudo apt update && sudo apt install ros-noetic-<package-name>`
 - Source the workspace `source <path to catkin workspace>/devel/setup.bash`.
-- Start the server/node using `rosrun edge_detection edge_detector.py` in Python.
+- Start the server/node using `rosrun edge_detection edge_detection_bin` in C++ and `rosrun edge_detection edge_detector.py` in Python.
 
 - ROS Service
     - On a new terminal, start the client using `rosrun edge_detection edge_detector_client.py "/<PATH_TO_IMAGES_DIRECTORY>/"`.
@@ -48,10 +51,11 @@ This ROS package detects edges in a checkerboard image, projects those edges int
 
 ### Robot_ROS
 - Start `roscore` on a terminal.
-- On another terminal, run `catkin_make` from the root of the catkin workspace.
-- Source the workspace `source <path to catkin workspace>/devel/setup.bash`.
+- Workspace Setup Step
+    - On another terminal, run `catkin_make` from the root of the catkin workspace.
+    - Source the workspace `source <path to catkin workspace>/devel/setup.bash`.
 - Start the node using `rosrun edge_detection edge_detection_bin` for cpp and `rosrun edge_detection edge_detector.py` for python.
-- On a new terminal, launch the robot using `rosparam set /use_sim_time true && roslaunch mira_picker display.launch gripper_name:=robotiq2f_140 publish_joint_state:=false publish_robot_state:=false`. A RViz window opens.
+- On a new terminal, repeat the workspace setup step and launch the robot using `rosparam set /use_sim_time true && roslaunch mira_picker display.launch gripper_name:=robotiq2f_140 publish_joint_state:=false publish_robot_state:=false`. A RViz window opens.
 - On a different terminal, play the bagfile by `rosbag play --clock -l <path to bagfile>`.
 - Edges are visualized as markers in the `/edge_points_marker` topic. 
 - Visualize `/edge_points_marker` topic in Rviz to see edges as markers along with the robot.

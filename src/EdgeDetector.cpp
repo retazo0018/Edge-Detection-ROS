@@ -26,6 +26,8 @@ namespace edge_detection {
 		edge_marker_pub_ = nh_.advertise<visualization_msgs::Marker>("/edge_points_marker", 1);
 
 		source_frame_id_ = "camera_color_optical_frame";
+
+		edge_detector_srv_ = nh_.advertiseService("edge_detection_server", &EdgeDetector::detectEdgesSrv, this);
 	}
 
 	void EdgeDetector::cameraInfoCallback(const sensor_msgs::CameraInfoConstPtr& msg) {
@@ -47,6 +49,41 @@ namespace edge_detection {
 
 		camera_info_sub_.shutdown();  // Unsubscribe after first callback
 		ROS_INFO("Camera intrinsics extracted and camera_info subscriber shut down.");
+	}
+
+	bool EdgeDetector::detectEdgesSrv(edge_detection::EdgeDetection::Request &req,
+                                      edge_detection::EdgeDetection::Response &res) {
+		try {
+			cv::Mat img = cv::imread(req.img_path, cv::IMREAD_COLOR);
+			if (img.empty()) {
+				ROS_ERROR("Failed to read image from path: %s", req.img_path.c_str());
+				res.info = false;
+				return true;
+			}
+
+			cv::Mat edges = detectEdges(img);  // Your own function, returns cv::Mat
+
+			res.height = edges.rows;
+			res.width = edges.cols;
+			res.info = true;
+
+			// Flatten image matrix into 1D vector
+			res.data.reserve(edges.total());
+			for (int i = 0; i < edges.rows; ++i) {
+				for (int j = 0; j < edges.cols; ++j) {
+					res.data.push_back(edges.at<uchar>(i, j));
+				}
+			}
+
+			return true;
+		} catch (const std::exception &e) {
+			ROS_ERROR("Exception in detectEdgesService: %s", e.what());
+			res.info = false;
+			res.height = 0;
+			res.width = 0;
+			res.data.clear();
+			return true;
+		}
 	}
 
 	cv::Mat EdgeDetector::detectEdges(const cv::Mat& rgb_image, bool is_service_call) const {

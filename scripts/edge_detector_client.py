@@ -38,8 +38,7 @@ if __name__ == "__main__":
     rospy.init_node('edge_detection_client')
 
     parser = argparse.ArgumentParser(description='Command Line Arguments')
-    parser.add_argument('img_dir', type=str, nargs='?',
-        default='/neura/ws/src/edge_detection/data',
+    parser.add_argument('img_dir', type=str,
         help='Path to the Images directory')
 	# Parse arguments
     args = parser.parse_args()

@@ -8,6 +8,7 @@
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
+#include "edge_detection/EdgeDetection.h"
 
 namespace edge_detection {
 
@@ -23,6 +24,8 @@ public:
 	std::vector<cv::Point> getEdgePixels(const cv::Mat& edges) const;
 	void publishPointCloudFromPoints(const cv::Mat& points_3d);
 	void publishEdgeMarkers(const cv::Mat& points_3d);
+	bool detectEdgesSrv(edge_detection::EdgeDetection::Request& req,
+                        edge_detection::EdgeDetection::Response& res);
 
 private:
     ros::NodeHandle nh_;
@@ -45,6 +48,8 @@ private:
 	ros::Publisher edge_image_pub_;
 	ros::Publisher edge_pc_pub_;
 	ros::Publisher edge_marker_pub_;
+
+	ros::ServiceServer edge_detector_srv_;
 };
 
 }  // namespace edge_detection
