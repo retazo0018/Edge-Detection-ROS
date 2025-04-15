@@ -29,7 +29,7 @@ This ROS package detects edges in a checkerboard image, projects those edges int
 
 ### Vision_ROS
 - Start `roscore` on a terminal.
-- On another terminal, intialise a ROS workspace, copy this repository contents inside `src` directory
+- Intialise a ROS workspace, copy this repository contents inside `src` directory
 - Workspace Setup Step
     - On another terminal, run `catkin_make` from the root of the catkin workspace.
     - Source the workspace `source <path to catkin workspace>/devel/setup.bash`.
