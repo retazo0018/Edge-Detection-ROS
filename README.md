@@ -61,6 +61,6 @@ This ROS package detects edges in a checkerboard image, projects those edges int
 
 ## Notes
 - The result videos are found in `results` directory.
-    - The video `results/result_video_cpp.mp4` shows the result video using C++ node. 
-    - The video `results/result_video_python.mp4` shows the result video using python node. 
+    - The video `results/result_video_c++.mp4` shows the result video using C++ node. 
+    - The video `results/result_video_py.mp4` shows the result video using python node. 
 - The results of sample images are found inside `data/results` directory.
